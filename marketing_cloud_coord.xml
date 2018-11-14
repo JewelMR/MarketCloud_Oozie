@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<coordinator-app xmlns="uri:oozie:coordinator:0.2" name="marketingcloud-scheduler" frequency="${coord:days(1)}" start="2018-09-18T08:30Z" end="2020-12-31T08:00Z" timezone="GMT">
+  <action>
+    <workflow>
+      <app-path>${applicationPath}/marketing_cloud_workflow.xml</app-path>
+      <configuration>
+        <property>
+          <name>today</name>
+          <value>${coord:formatTime(coord:nominalTime(),"yyyy-MM-dd")}</value>
+        </property>
+        <property>
+          <name>action.sharelib.for.pig</name>
+          <value>pig, hive</value>
+        </property>
+      </configuration>
+    </workflow>
+  </action>
+</coordinator-app>
