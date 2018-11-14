@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="MarketingCloud-workflow-prod">
+  <start to="Run_PigScript"/>
+  <!-- Step 1: Run script on HDFS staging Data -->
+  <action name="Run_PigScript">
+    <pig>
+      <job-tracker>${jobTracker}</job-tracker>
+      <name-node>${nameNode}</name-node>
+      <configuration>
+        <property>
+          <name>mapred.job.queue.name</name>
+          <value>${queueName}</value>
+        </property>
+      </configuration>
+      <script>${pigScriptDir}/marketing_cloud_model.pig</script>
+      <param>inputDir=${nifiOutput}</param>
+      <param>outputDir=${hdfsOutput}/${today}</param>
+    </pig>
+    <ok to="SendSuccessNotification"/>
+    <error to="SendFailureNotification"/>
+  </action>
+  <!-- Step 2: Send Success of Failure Email -->
+  <action name="SendSuccessNotification">
+    <email xmlns="uri:oozie:email-action:0.2">
+      <to>${emailList}</to>
+      <subject>SUCCESS: MarketingCloud ${wf:id()} is done</subject>
+      <body>The Marketing Cloud wf ${wf:id()} successfully completed.</body>
+    </email>
+    <ok to="end"/>
+    <error to="SendFailureNotification"/>
+  </action>
+  <action name="SendFailureNotification">
+    <email xmlns="uri:oozie:email-action:0.2">
+      <to>${emailList}</to>
+      <subject>FAILURE: Marketing Cloud ${wf:id()} is done</subject>
+      <body>MarketingCloud wf ${wf:id()} failed.</body>
+    </email>
+    <ok to="kill_job"/>
+    <error to="kill_job"/>
+  </action>
+  <kill name="kill_job">
+    <message>error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  </kill>
+  <end name="end"/>
+</workflow-app>
